@@ -5,7 +5,9 @@ A modern calculator application with a Flutter web frontend and Python FastAPI b
 ## Features
 
 - Clean, modern Material Design UI
-- Support for basic arithmetic operations (addition, subtraction, multiplication, division)
+- Support for complex mathematical expressions with PEMDAS/BODMAS order
+- Basic arithmetic operations (+, -, *, /, ^)
+- Mathematical functions (sqrt, root, frac)
 - Real-time calculation
 - Calculation history
 - Input validation
@@ -21,8 +23,12 @@ A modern calculator application with a Flutter web frontend and Python FastAPI b
 calculator/
 ├── backend/
 │   ├── main.py              # FastAPI backend application
-│   ├── requirements.txt     # Python dependencies
-│   └── logs/               # Application logs directory
+│   ├── calculator_engine.py # Core calculation engine
+│   ├── evaluator.py        # Expression evaluation logic
+│   ├── operators.py        # Operator definitions
+│   ├── parser.py           # Expression parser
+│   ├── requirements.txt    # Python dependencies
+│   └── logs/              # Application logs directory
 └── frontend/
     ├── lib/
     │   └── main.dart       # Flutter frontend application
@@ -30,15 +36,41 @@ calculator/
     └── web/                # Web-specific files
 ```
 
-## Prerequisites
+## Running the Application
 
+You can run the application either using Docker or by setting up the development environment locally.
+
+### Option 1: Using Docker (Recommended for Production)
+
+Prerequisites:
+- Docker
+- Docker Compose
+
+1. Clone the repository and navigate to the project directory
+
+2. Start the application using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
+
+The services will be available at:
+- Frontend: http://localhost:80
+- Backend API: http://localhost:5883
+- API Documentation: http://localhost:5883/docs
+
+To stop the application:
+```bash
+docker-compose down
+```
+
+### Option 2: Local Development Setup
+
+Prerequisites:
 - Python 3.8 or higher
 - Flutter SDK
 - A modern web browser
 
-## Installation
-
-### Backend Setup
+#### Backend Setup
 
 1. Create and activate a Python virtual environment:
    ```bash
@@ -52,7 +84,7 @@ calculator/
    pip install -r requirements.txt
    ```
 
-### Frontend Setup
+#### Frontend Setup
 
 1. Install Flutter dependencies:
    ```bash
@@ -60,12 +92,11 @@ calculator/
    flutter pub get
    ```
 
-## Running the Application
+#### Running Locally
 
-### Start the Backend
-
-1. From the backend directory:
+1. Start the Backend:
    ```bash
+   cd backend
    python main.py
    ```
    The API will be available at `http://localhost:5883`
@@ -74,10 +105,9 @@ calculator/
    - Swagger UI: `http://localhost:5883/docs`
    - ReDoc: `http://localhost:5883/redoc`
 
-### Start the Frontend
-
-1. From the frontend directory:
+2. Start the Frontend:
    ```bash
+   cd frontend
    flutter run -d chrome
    ```
    The application will be available in your default web browser.
@@ -86,21 +116,50 @@ calculator/
 
 ### POST /calculate
 
-Performs arithmetic calculations.
+Evaluates mathematical expressions with support for complex operations.
 
 Request body:
 ```json
 {
-  "operation": "add | subtract | multiply | divide",
-  "num1": number,
-  "num2": number
+  "expression": "string"
 }
 ```
+
+Example expressions:
+- Basic arithmetic: `"2 + 3 * (4 - 1)"`
+- Square root: `"sqrt(16)"`
+- Nth root: `"root(27, 3)"` (cube root of 27)
+- Fractions: `"frac(1, 2) + frac(3, 4)"` (1/2 + 3/4)
+- Mixed operations: `"2 * sqrt(9) + frac(5, 2)"`
 
 Response:
 ```json
 {
-  "result": number
+  "result": number,
+  "formatted_expression": "string"
+}
+```
+
+### GET /
+
+Root endpoint that returns API information and supported operations.
+
+Response:
+```json
+{
+  "message": "Advanced Calculator API is running",
+  "version": "2.0.0",
+  "documentation": "/docs",
+  "supported_operations": [
+    "Addition (+)",
+    "Subtraction (-)",
+    "Multiplication (*)",
+    "Division (/)",
+    "Exponentiation (^)",
+    "Square root (sqrt)",
+    "Nth root (root)",
+    "Fractions (frac)"
+  ]
 }
 ```
 
@@ -108,10 +167,11 @@ Response:
 
 The application includes comprehensive error handling:
 
-- Input validation for numbers
-- Division by zero protection
+- Invalid expression syntax
+- Division by zero
+- Invalid function arguments
+- Mismatched parentheses
 - Network error handling
-- Invalid operation handling
 - Server error handling
 
 ## Logging
@@ -120,6 +180,8 @@ Backend logs are stored in `backend/logs/calculator.log` with rotation enabled:
 - Maximum file size: 1MB
 - Keeps last 5 log files
 - Includes timestamps and log levels
+
+When running with Docker, logs are persisted using a named volume and can be accessed within the container at `/app/logs`.
 
 ## Development
 
@@ -132,6 +194,8 @@ The backend is built with FastAPI and includes:
 - CORS configuration
 - Environment variable support
 - Logging system
+- Mathematical expression parser
+- Shunting yard algorithm for expression evaluation
 
 ### Frontend Development
 
@@ -146,7 +210,17 @@ The frontend is built with Flutter and includes:
 
 ## Production Deployment
 
-### Backend Deployment
+### Using Docker (Recommended)
+
+1. Configure environment variables in docker-compose.yml if needed
+2. Build and start the containers:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+### Manual Deployment
+
+#### Backend Deployment
 
 1. Set environment variables:
    ```
@@ -159,7 +233,7 @@ The frontend is built with Flutter and includes:
    uvicorn main:app --host 0.0.0.0 --port 5883 --workers 4
    ```
 
-### Frontend Deployment
+#### Frontend Deployment
 
 1. Build the web application:
    ```bash
@@ -176,6 +250,7 @@ The frontend is built with Flutter and includes:
 - Implement rate limiting if needed
 - Add authentication if required
 - Sanitize and validate all inputs
+- When using Docker, review container security best practices
 
 ## Contributing
 
@@ -187,4 +262,4 @@ The frontend is built with Flutter and includes:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
